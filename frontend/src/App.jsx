@@ -1,35 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import ReactPlayer from "react-player";
+
+const API_URL = "http://localhost:5000"; // Replace with backend URL
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [text, setText] = useState("");
+  const [videos, setVideos] = useState([]);
+  const [chat, setChat] = useState("");
+  const [response, setResponse] = useState("");
+
+  useEffect(() => {
+    axios.get(`${API_URL}/videos`).then((res) => setVideos(res.data));
+  }, []);
+
+  const handleUpload = async () => {
+    await axios.post(`${API_URL}/upload`, { text });
+    alert("Uploaded!");
+  };
+
+  const handleAsk = async () => {
+    const res = await axios.post(`${API_URL}/ask`, { question: chat });
+    setResponse(res.data.answer);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="p-10 bg-gray-100 min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Virtual Trainer</h1>
+
+      {/* Upload Section */}
+      <textarea
+        className="w-full p-2 border rounded"
+        rows="4"
+        placeholder="Enter training script..."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      ></textarea>
+      <button className="bg-blue-500 text-white p-2 mt-2" onClick={handleUpload}>
+        Upload & Generate Video
+      </button>
+
+      {/* Video Section */}
+      <h2 className="text-xl font-semibold mt-6">Trainer Videos</h2>
+      {videos.map((video) => (
+        <div key={video.id} className="my-2">
+          <ReactPlayer url={video.url} controls width="100%" />
+        </div>
+      ))}
+
+      {/* Q&A Section */}
+      <h2 className="text-xl font-semibold mt-6">Ask the Trainer</h2>
+      <input
+        className="w-full p-2 border rounded"
+        placeholder="Type a question..."
+        value={chat}
+        onChange={(e) => setChat(e.target.value)}
+      />
+      <button className="bg-green-500 text-white p-2 mt-2" onClick={handleAsk}>
+        Ask
+      </button>
+      {response && <p className="mt-2 bg-gray-200 p-2">{response}</p>}
+    </div>
+  );
 }
 
-export default App
+export default App;
