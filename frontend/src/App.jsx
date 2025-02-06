@@ -36,7 +36,7 @@ function App() {
         value={text}
         onChange={(e) => setText(e.target.value)}
       ></textarea>
-      <button className="bg-blue-500 text-white p-2 mt-2" onClick={handleUpload}>
+      <button className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-l" onClick={handleUpload}>
         Upload & Generate Video
       </button>
 
@@ -56,7 +56,7 @@ function App() {
         value={chat}
         onChange={(e) => setChat(e.target.value)}
       />
-      <button className="bg-green-500 text-white p-2 mt-2" onClick={handleAsk}>
+      <button className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-l" onClick={handleAsk}>
         Ask
       </button>
       {response && <p className="mt-2 bg-gray-200 p-2">{response}</p>}
