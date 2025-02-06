@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    ports:
+      - "3000:3000"  # Expose frontend on port 80
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    ports:
+      - "5000:5000"  # Expose backend on port 5000
+    networks:
+      - app-network
+    environment:
+      - AZURE_STORAGE_CONNECTION_STRING=<your-azure-connection-string>
+      - OPENAI_API_KEY=<your-openai-api-key>
+
+networks:
+  app-network:
+    driver: bridge

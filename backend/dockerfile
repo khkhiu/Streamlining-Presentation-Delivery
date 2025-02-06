@@ -1,0 +1,20 @@
+# Use official Node.js image as the base
+FROM node:18
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json for the backend
+COPY backend/package*.json ./
+
+# Install backend dependencies
+RUN npm install
+
+# Copy the rest of the backend project files
+COPY backend/ ./
+
+# Expose the backend port (change this if needed)
+EXPOSE 5000
+
+# Start the server
+CMD ["npm", "start"]

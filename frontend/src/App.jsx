@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ReactPlayer from "react-player";
 
-const API_URL = "http://localhost:5000"; // Replace with backend URL
+const API_URL = "http://backend:5000"; // Update to backend service name
 
 function App() {
   const [text, setText] = useState("");
