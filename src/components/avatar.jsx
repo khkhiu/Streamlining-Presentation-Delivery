@@ -1,6 +1,6 @@
 import "./avatar.css";
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
-import { createAvatarSynthesizer, createWebRTCConnection } from "./Utility";
+import { createAvatarSynthesizer, createWebRTCConnection } from "./utility";
 import { avatarAppConfig } from "./config";
 import { useState } from "react";
 import { useRef } from "react";
