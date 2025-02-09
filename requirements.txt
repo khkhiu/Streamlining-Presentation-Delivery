@@ -1,0 +1,7 @@
+npm i microsoft-cognitiveservices-speech-sdk
+npm i radix-ui
+npm i class-variance-authority
+npm i clsx
+npm i tailwindcss-animate
+npm i lucide-react
+https://ui.shadcn.com/docs/installation/vite
