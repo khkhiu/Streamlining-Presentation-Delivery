@@ -1,7 +1,11 @@
+https://ui.shadcn.com/docs/installation/vite
+use the following command for autoprefixer
+npm install -D tailwindcss@3.4.17 postcss autoprefixer
+
+
 npm i microsoft-cognitiveservices-speech-sdk
 npm i radix-ui
 npm i class-variance-authority
 npm i clsx
 npm i tailwindcss-animate
 npm i lucide-react
-https://ui.shadcn.com/docs/installation/vite
