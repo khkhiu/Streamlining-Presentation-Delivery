@@ -18,6 +18,7 @@ interface RelayTokenResponse {
 
 export default function App() {
   // State for configuration - initialized with default values
+  // useState to enable changes to the variable during the component's lifecycle
   const [region, setRegion] = useState<string>(CONFIG.azure.region)
   const [apiKey, setApiKey] = useState<string>(CONFIG.azure.apiKey)
   const [ttsVoice, setTtsVoice] = useState<string>('en-US-AvaMultilingualNeural')
