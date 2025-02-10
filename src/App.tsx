@@ -1,32 +1,14 @@
 // App.tsx
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-//import { Checkbox } from '@/components/ui/checkbox'
 import { getEnvironmentConfig } from '@/config/environment'
 
 // Configuration object
 const CONFIG = getEnvironmentConfig()
-
-interface Region {
-  value: string
-  label: string
-}
-
-const REGIONS: Region[] = [
-  { value: 'westus2', label: 'West US 2' },
-  { value: 'westeurope', label: 'West Europe' },
-  { value: 'southeastasia', label: 'Southeast Asia' },
-  { value: 'southcentralus', label: 'South Central US' },
-  { value: 'northeurope', label: 'North Europe' },
-  { value: 'swedencentral', label: 'Sweden Central' },
-  { value: 'eastus2', label: 'East US 2' }
-]
 
 interface RelayTokenResponse {
   Urls: string[]
@@ -36,6 +18,7 @@ interface RelayTokenResponse {
 
 export default function App() {
   // State for configuration - initialized with default values
+  /* keeping this for reference
   const [region, setRegion] = useState<string>(CONFIG.azure.region)
   const [apiKey, setApiKey] = useState<string>(CONFIG.azure.apiKey)
   const [ttsVoice, setTtsVoice] = useState<string>('en-US-AvaMultilingualNeural')
@@ -44,10 +27,21 @@ export default function App() {
   const [avatarCharacter, setAvatarCharacter] = useState<string>('lisa')
   const [avatarStyle, setAvatarStyle] = useState<string>('casual-sitting')
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFFFF')
-  const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('')
   const [customizedAvatar, setCustomizedAvatar] = useState<boolean>(false)
   const [transparentBackground, setTransparentBackground] = useState<boolean>(false)
   const [videoCrop, setVideoCrop] = useState<boolean>(false)
+  */
+  const region: string = CONFIG.azure.region;
+  const apiKey: string = CONFIG.azure.region;
+  const ttsVoice: string = 'en-US-AvaMultilingualNeural';
+  const customVoiceEndpointId: string = '';
+  const personalVoiceSpeakerProfileId: string = '';
+  const avatarCharacter: string = 'lisa';
+  const avatarStyle: string = 'casual-sitting';
+  const backgroundColor: string = '#FFFFFFFF';
+  const customizedAvatar: boolean = false;
+  const transparentBackground: boolean = false;
+  const videoCrop: boolean = false;
   
   // State for avatar control
   const [spokenText, setSpokenText] = useState<string>('Hello world!')
@@ -299,42 +293,6 @@ export default function App() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Talking Avatar Service Demo</h1>
-      {/*
-      {!isSessionStarted && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Azure Speech Resource</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Label htmlFor="region">Region:</Label>
-              <Select value={region} onValueChange={setRegion}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {REGIONS.map(region => (
-                    <SelectItem key={region.value} value={region.value}>
-                      {region.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Label htmlFor="apiKey">API Key:</Label>
-              <Input
-                id="apiKey"
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      */}
 
       <Card className="mb-6">
         <CardHeader>
