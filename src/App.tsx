@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+//import { Checkbox } from '@/components/ui/checkbox'
 import { getEnvironmentConfig } from '@/config/environment'
 
 // Configuration object
@@ -38,8 +38,6 @@ export default function App() {
   // State for configuration - initialized with default values
   const [region, setRegion] = useState<string>(CONFIG.azure.region)
   const [apiKey, setApiKey] = useState<string>(CONFIG.azure.apiKey)
-  const [enablePrivateEndpoint, setEnablePrivateEndpoint] = useState<boolean>(false)
-  const [privateEndpoint, setPrivateEndpoint] = useState<string>('')
   const [ttsVoice, setTtsVoice] = useState<string>('en-US-AvaMultilingualNeural')
   const [customVoiceEndpointId, setCustomVoiceEndpointId] = useState<string>('')
   const [personalVoiceSpeakerProfileId, setPersonalVoiceSpeakerProfileId] = useState<string>('')
@@ -49,7 +47,7 @@ export default function App() {
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('')
   const [customizedAvatar, setCustomizedAvatar] = useState<boolean>(false)
   const [transparentBackground, setTransparentBackground] = useState<boolean>(false)
-  const [videoCrop, setVideoCrop] = useState<boolean>(false)c
+  const [videoCrop, setVideoCrop] = useState<boolean>(false)
   
   // State for avatar control
   const [spokenText, setSpokenText] = useState<string>('Hello world!')
@@ -184,16 +182,9 @@ export default function App() {
       return
     }
 
-    if (enablePrivateEndpoint && !privateEndpoint) {
-      alert('Please fill in the Azure Speech endpoint.')
-      return
-    }
-
     try {
       const response = await fetch(
-        enablePrivateEndpoint
-          ? `https://${privateEndpoint}/tts/cognitiveservices/avatar/relay/token/v1`
-          : `https://${region}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
+        `https://${region}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
         {
           headers: {
             'Ocp-Apim-Subscription-Key': apiKey
@@ -203,16 +194,7 @@ export default function App() {
 
       const tokenData: RelayTokenResponse = await response.json()
       
-      let speechConfig: SpeechSDK.SpeechConfig
-      if (enablePrivateEndpoint) {
-        speechConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-          new URL(`wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`),
-          apiKey
-        )
-      } else {
-        speechConfig = SpeechSDK.SpeechConfig.fromSubscription(apiKey, region)
-      }
-      
+      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(apiKey, region)
       speechConfig.endpointId = customVoiceEndpointId
 
       const videoFormat = new SpeechSDK.AvatarVideoFormat()
@@ -317,7 +299,7 @@ export default function App() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Talking Avatar Service Demo</h1>
-      
+      {/*
       {!isSessionStarted && (
         <Card className="mb-6">
           <CardHeader>
@@ -349,110 +331,89 @@ export default function App() {
                 onChange={(e) => setApiKey(e.target.value)}
               />
             </div>
+          </CardContent>
+        </Card>
+      )}
+      */}
 
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="enablePrivateEndpoint"
-                checked={enablePrivateEndpoint}
-                onCheckedChange={(checked) => setEnablePrivateEndpoint(checked as boolean)}
-              />
-              <Label htmlFor="enablePrivateEndpoint">Enable Private Endpoint</Label>
-            </div>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Avatar Control Panel</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="spokenText">Spoken Text:</Label>
+            <Textarea
+              id="spokenText"
+              value={spokenText}
+              onChange={(e) => setSpokenText(e.target.value)}
+              className="h-20"
+            />
+          </div>
 
-            {enablePrivateEndpoint && (
-              <div className="flex items-center gap-4">
-                <Label htmlFor="privateEndpoint">Private Endpoint:</Label>
-                <Input
-                  id="privateEndpoint"
-                  placeholder="https://{your custom name}.cognitiveservices.azure.com/"
-                  value={privateEndpoint}
-                  onChange={(e) => setPrivateEndpoint(e.target.value)}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-  
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Avatar Control Panel</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="spokenText">Spoken Text:</Label>
-              <Textarea
-                id="spokenText"
-                value={spokenText}
-                onChange={(e) => setSpokenText(e.target.value)}
-                className="h-20"
-              />
-            </div>
-  
-            <div className="flex gap-2">
-              {!isSessionStarted ? (
-                <Button onClick={startSession}>Start Session</Button>
-              ) : (
-                <>
-                  <Button 
-                    onClick={speak} 
-                    disabled={isSpeaking}>
-                    Speak
-                  </Button>
-                  <Button 
-                    onClick={stopSpeaking} 
-                    disabled={!isSpeaking}>
-                    Stop Speaking
-                  </Button>
-                  <Button 
-                    onClick={stopSession}>
-                    Stop Session
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-  
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Avatar Video</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative w-full max-w-3xl">
-              <div 
-                ref={remoteVideoRef} 
-                className="relative z-10"
-              />
-              <canvas 
-                ref={canvasRef}
-                width="1920"
-                height="1080"
-                className={`absolute top-0 left-0 ${transparentBackground ? 'block' : 'hidden'}`}
-              />
-              <canvas 
-                ref={tmpCanvasRef}
-                width="1920"
-                height="1080"
-                className="hidden"
-              />
-            </div>
-          </CardContent>
-        </Card>
-  
-        <Card>
-          <CardHeader>
-            <CardTitle>Logs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-100 p-4 rounded-lg max-h-60 overflow-y-auto">
-              {logs.map((log, index) => (
-                <div key={index} className="mb-1">{log}</div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-  
+          <div className="flex gap-2">
+            {!isSessionStarted ? (
+              <Button onClick={startSession}>Start Session</Button>
+            ) : (
+              <>
+                <Button 
+                  onClick={speak} 
+                  disabled={isSpeaking}>
+                  Speak
+                </Button>
+                <Button 
+                  onClick={stopSpeaking} 
+                  disabled={!isSpeaking}>
+                  Stop Speaking
+                </Button>
+                <Button 
+                  onClick={stopSession}>
+                  Stop Session
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Avatar Video</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative w-full max-w-3xl">
+            <div 
+              ref={remoteVideoRef} 
+              className="relative z-10"
+            />
+            <canvas 
+              ref={canvasRef}
+              width="1920"
+              height="1080"
+              className={`absolute top-0 left-0 ${transparentBackground ? 'block' : 'hidden'}`}
+            />
+            <canvas 
+              ref={tmpCanvasRef}
+              width="1920"
+              height="1080"
+              className="hidden"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Logs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-100 p-4 rounded-lg max-h-60 overflow-y-auto">
+            {logs.map((log, index) => (
+              <div key={index} className="mb-1">{log}</div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
