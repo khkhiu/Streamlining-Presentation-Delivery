@@ -1,0 +1,22 @@
+# Node.js Dockerfile
+# filename: Dockerfile.nodejs
+FROM node:18-alpine
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package*.json ./
+RUN npm install
+
+# Bundle app source
+COPY . .
+
+# Copy the built Flutter web files from the builder stage
+COPY --from=builder /home/flutter/app/build/web ./public
+
+# Expose port
+EXPOSE 3000
+
+# Start the application
+CMD ["node", "server.js"]

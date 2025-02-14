@@ -1,0 +1,28 @@
+# Docker Compose configuration
+# filename: docker-compose.yml
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.flutter
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.nodejs
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      # Add other environment variables as needed
+      - SPEECH_KEY=${SPEECH_KEY}
+      - SPEECH_REGION=${SPEECH_REGION}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME}
