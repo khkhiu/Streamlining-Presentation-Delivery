@@ -1,9 +1,9 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:provider/provider.dart';
-import '../services/avatar_service.dart';
-import '../services/chat_service.dart';
+//import 'package:provider/provider.dart';
+//import '../services/avatar_service.dart';
+//import '../services/chat_service.dart';
 import '../widgets/avatar_view.dart';
 import '../widgets/chat_input.dart';
 import '../widgets/configuration_panel.dart';
@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Talking Avatar Chat'),
         actions: [
           IconButton(
-            icon: Icon(_isConfigVisible ? Icons.settings_off : Icons.settings),
+            icon: Icon(_isConfigVisible ? Icons.settings_power : Icons.settings),
             onPressed: () => setState(() => _isConfigVisible = !_isConfigVisible),
           ),
         ],
