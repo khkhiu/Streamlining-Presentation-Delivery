@@ -19,6 +19,20 @@ var sessionActive = false
 var lastSpeakTime
 var imgUrl = ""
 
+// Fetch configuration from .env file
+fetch('/api/config')
+    .then(response => response.json())
+    .then(config => {
+        // Set the values in the form
+        document.getElementById('region').value = config.speech.region;
+        document.getElementById('APIKey').value = config.speech.apiKey;
+        document.getElementById('azureOpenAIEndpoint').value = config.openai.endpoint;
+        document.getElementById('azureOpenAIApiKey').value = config.openai.apiKey;
+        document.getElementById('azureOpenAIDeploymentName').value = config.openai.deploymentName;
+        document.getElementById('prompt').value = config.openai.systemPrompt;
+    })
+    .catch(error => console.error('Error loading configuration:', error));
+
 // Connect to avatar service
 function connectAvatar() {
     const cogSvcRegion = document.getElementById('region').value
