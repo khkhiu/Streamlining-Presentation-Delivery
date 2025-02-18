@@ -19,17 +19,30 @@ var sessionActive = false
 var lastSpeakTime
 var imgUrl = ""
 
-// Fetch configuration from .env file
+// Add this to the beginning of your chat.js file
 fetch('/api/config')
     .then(response => response.json())
     .then(config => {
-        // Set the values in the form
+        // Speech and OpenAI settings
         document.getElementById('region').value = config.speech.region;
         document.getElementById('APIKey').value = config.speech.apiKey;
         document.getElementById('azureOpenAIEndpoint').value = config.openai.endpoint;
         document.getElementById('azureOpenAIApiKey').value = config.openai.apiKey;
         document.getElementById('azureOpenAIDeploymentName').value = config.openai.deploymentName;
         document.getElementById('prompt').value = config.openai.systemPrompt;
+
+        // STT/TTS settings
+        document.getElementById('sttLocales').value = config.stt.locales;
+        document.getElementById('ttsVoice').value = config.tts.voice;
+        document.getElementById('customVoiceEndpointId').value = config.tts.customVoiceEndpointId;
+        document.getElementById('personalVoiceSpeakerProfileID').value = config.tts.personalVoiceSpeakerProfileId;
+
+        // Avatar settings
+        document.getElementById('talkingAvatarCharacter').value = config.avatar.character;
+        document.getElementById('talkingAvatarStyle').value = config.avatar.style;
+        document.getElementById('customizedAvatar').checked = config.avatar.customized;
+        document.getElementById('autoReconnectAvatar').checked = config.avatar.autoReconnect;
+        document.getElementById('useLocalVideoForIdle').checked = config.avatar.useLocalVideoForIdle;
     })
     .catch(error => console.error('Error loading configuration:', error));
 

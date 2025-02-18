@@ -25,6 +25,21 @@ app.get('/api/config', (req, res) => {
             apiKey: process.env.AZURE_OPENAI_API_KEY,
             deploymentName: process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
             systemPrompt: process.env.AZURE_OPENAI_SYSTEM_PROMPT
+        },
+        stt: {
+            locales: process.env.STT_LOCALES
+        },
+        tts: {
+            voice: process.env.TTS_VOICE,
+            customVoiceEndpointId: process.env.TTS_CUSTOM_VOICE_ENDPOINT_ID,
+            personalVoiceSpeakerProfileId: process.env.TTS_PERSONAL_VOICE_SPEAKER_PROFILE_ID
+        },
+        avatar: {
+            character: process.env.AVATAR_CHARACTER,
+            style: process.env.AVATAR_STYLE,
+            customized: process.env.AVATAR_CUSTOMIZED === 'true',
+            autoReconnect: process.env.AVATAR_AUTO_RECONNECT === 'true',
+            useLocalVideoForIdle: process.env.AVATAR_USE_LOCAL_VIDEO_FOR_IDLE === 'true'
         }
     });
 });
