@@ -3,6 +3,7 @@ import 'package:web/web.dart' as web;
 //import 'dart:js_interop';
 import 'dart:ui_web' as ui_web;
 import 'widgets/avatar_controls.dart';
+import 'widgets/remote_video_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,8 +49,24 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Avatar Control Panel'),
       ),
-      body: const SingleChildScrollView(
-        child: AvatarControls(),
+      body: Row(
+        children: [
+          // Video stream takes up left side
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: Colors.black,
+              child: const RemoteVideoView(),
+            ),
+          ),
+          // Controls take up right side
+          const Expanded(
+            flex: 1,
+            child: SingleChildScrollView(
+              child: AvatarControls(),
+            ),
+          ),
+        ],
       ),
     );
   }

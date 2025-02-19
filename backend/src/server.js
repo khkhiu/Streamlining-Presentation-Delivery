@@ -16,7 +16,8 @@ app.use(express.json());
 
 // Enable CORS for Flutter frontend
 app.use(cors({
-    origin: ['http://localhost:39073', 'http://localhost:3000'],
+    //origin: ['http://localhost:39073', 'http://localhost:3000'],
+    origin: '*', // In production, replace with your Flutter app's domain
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: [
         'Content-Type',
