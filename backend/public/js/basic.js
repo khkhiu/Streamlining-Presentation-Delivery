@@ -1,17 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
 
-// Global objects
-var avatarSynthesizer
-var peerConnection
-var useTcpForWebRTC = false
-var previousAnimationFrameTimestamp = 0;
+// Initialize global variables used throughout the application
+var avatarSynthesizer  // Handles avatar synthesis and speech
+var peerConnection     // Manages WebRTC peer connection
+var useTcpForWebRTC = false  // Flag to determine if TCP should be used for WebRTC
+var previousAnimationFrameTimestamp = 0;  // Used for throttling animation frames
 
-// Add this to the beginning of your chat.js file
+
+// Fetch initial configuration from server
+// This loads all settings for Speech, OpenAI, STT/TTS, and Avatar configurations
 fetch('/api/config')
     .then(response => response.json())
     .then(config => {
-        // Speech and OpenAI settings
+        // Configure Speech and OpenAI settings from server response
         document.getElementById('region').value = config.speech.region;
         document.getElementById('APIKey').value = config.speech.apiKey;
         document.getElementById('azureOpenAIEndpoint').value = config.openai.endpoint;
@@ -19,13 +21,13 @@ fetch('/api/config')
         document.getElementById('azureOpenAIDeploymentName').value = config.openai.deploymentName;
         document.getElementById('prompt').value = config.openai.systemPrompt;
 
-        // STT/TTS settings
+        // Configure STT/TTS (Speech-to-Text/Text-to-Speech) settings
         document.getElementById('sttLocales').value = config.stt.locales;
         document.getElementById('ttsVoice').value = config.tts.voice;
         document.getElementById('customVoiceEndpointId').value = config.tts.customVoiceEndpointId;
         document.getElementById('personalVoiceSpeakerProfileID').value = config.tts.personalVoiceSpeakerProfileId;
 
-        // Avatar settings
+        // Configure Avatar appearance and behavior settings
         document.getElementById('talkingAvatarCharacter').value = config.avatar.character;
         document.getElementById('talkingAvatarStyle').value = config.avatar.style;
         document.getElementById('customizedAvatar').checked = config.avatar.customized;
@@ -34,14 +36,15 @@ fetch('/api/config')
     })
     .catch(error => console.error('Error loading configuration:', error));
 
-// Logger
+// Logger utility function - Adds messages to the logging div with line breaks
 const log = msg => {
     document.getElementById('logging').innerHTML += msg + '<br>'
 }
 
-// Setup WebRTC
+// WebRTC Setup Function
+// Handles the setup of WebRTC connection including video/audio streams and data channels
 function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
-    // Create WebRTC peer connection
+    // Initialize WebRTC peer connection with ICE server configuration
     peerConnection = new RTCPeerConnection({
         iceServers: [{
             urls: [ useTcpForWebRTC ? iceServerUrl.replace(':3478', ':443?transport=tcp') : iceServerUrl ],
@@ -51,9 +54,9 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
         iceTransportPolicy: useTcpForWebRTC ? 'relay' : 'all'
     })
 
-    // Fetch WebRTC video stream and mount it to an HTML video element
+    // Handle incoming media tracks (video/audio)
     peerConnection.ontrack = function (event) {
-        // Clean up existing video element if there is any
+        // Clean up any existing video/audio elements
         remoteVideoDiv = document.getElementById('remoteVideo')
         for (var i = 0; i < remoteVideoDiv.childNodes.length; i++) {
             if (remoteVideoDiv.childNodes[i].localName === event.track.kind) {
@@ -61,6 +64,7 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
             }
         }
 
+        // Create and configure new media player
         const mediaPlayer = document.createElement(event.track.kind)
         mediaPlayer.id = event.track.kind
         mediaPlayer.srcObject = event.streams[0]
@@ -69,7 +73,9 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
         document.getElementById('videoLabel').hidden = true
         document.getElementById('overlayArea').hidden = false
 
+        // Special handling for video tracks
         if (event.track.kind === 'video') {
+            // Configure video display settings
             mediaPlayer.playsInline = true
             remoteVideoDiv = document.getElementById('remoteVideo')
             canvas = document.getElementById('canvas')
@@ -81,6 +87,7 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
                 canvas.hidden = true
             }
 
+            // Handle video playback start
             mediaPlayer.addEventListener('play', () => {
                 if (document.getElementById('transparentBackground').checked) {
                     window.requestAnimationFrame(makeBackgroundTransparent)
@@ -89,15 +96,17 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
                 }
             })
         }
+        // Special handling for audio tracks
         else
         {
             // Mute the audio player to make sure it can auto play, will unmute it when speaking
             // Refer to https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+            // Mute audio initially for autoplay compatibility
             mediaPlayer.muted = true
         }
     }
 
-    // Listen to data channel, to get the event from the server
+    // Setup data channel for server events
     peerConnection.addEventListener("datachannel", event => {
         const dataChannel = event.channel
         dataChannel.onmessage = e => {
@@ -118,6 +127,7 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
     c = peerConnection.createDataChannel("eventChannel")
 
     // Make necessary update to the web page when the connection state changes
+    // Monitor WebRTC connection state changes
     peerConnection.oniceconnectionstatechange = e => {
         log("WebRTC status: " + peerConnection.iceConnectionState)
 
@@ -137,10 +147,12 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
     }
 
     // Offer to receive 1 audio, and 1 video track
+    // Configure media transceivers
     peerConnection.addTransceiver('video', { direction: 'sendrecv' })
     peerConnection.addTransceiver('audio', { direction: 'sendrecv' })
 
     // start avatar, establish WebRTC connection
+    // Initialize avatar synthesis and establish WebRTC connection
     avatarSynthesizer.startAvatarAsync(peerConnection).then((r) => {
         if (r.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
             console.log("[" + (new Date()).toISOString() + "] Avatar started. Result ID: " + r.resultId)
@@ -165,22 +177,27 @@ function setupWebRTC(iceServerUrl, iceServerUsername, iceServerCredential) {
     );
 }
 
-// Make video background transparent by matting
+// Video Background Processing
+// Handles making the video background transparent by processing each frame
 function makeBackgroundTransparent(timestamp) {
     // Throttle the frame rate to 30 FPS to reduce CPU usage
     if (timestamp - previousAnimationFrameTimestamp > 30) {
+        // Get video and canvas elements
         video = document.getElementById('video')
         tmpCanvas = document.getElementById('tmpCanvas')
         tmpCanvasContext = tmpCanvas.getContext('2d', { willReadFrequently: true })
         tmpCanvasContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
         if (video.videoWidth > 0) {
             let frame = tmpCanvasContext.getImageData(0, 0, video.videoWidth, video.videoHeight)
+            // Process each pixel in the frame
             for (let i = 0; i < frame.data.length / 4; i++) {
                 let r = frame.data[i * 4 + 0]
                 let g = frame.data[i * 4 + 1]
                 let b = frame.data[i * 4 + 2]
+                // Apply transparency and color corrections
                 if (g - 150 > r + b) {
                     // Set alpha to 0 for pixels that are close to green
+                    // Make pure green pixels transparent
                     frame.data[i * 4 + 3] = 0
                 } else if (g + g > r + b) {
                     // Reduce green part of the green pixels to avoid green edge issue
@@ -221,7 +238,10 @@ function htmlEncode(text) {
     return String(text).replace(/[&<>"'\/]/g, (match) => entityMap[match])
 }
 
+// Session Management Functions
+// Handles starting, stopping, and managing the avatar session
 window.startSession = () => {
+    // Validate configuration
     const cogSvcRegion = document.getElementById('region').value
     const cogSvcSubKey = document.getElementById('APIKey').value
     if (cogSvcSubKey === '') {
@@ -236,6 +256,7 @@ window.startSession = () => {
         return
     }
 
+    // Configure speech synthesis
     let speechSynthesisConfig
     if (privateEndpointEnabled) {
         speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(new URL(`wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`), cogSvcSubKey) 
@@ -244,6 +265,7 @@ window.startSession = () => {
     }
     speechSynthesisConfig.endpointId = document.getElementById('customVoiceEndpointId').value
 
+    // Configure video format and cropping
     const videoFormat = new SpeechSDK.AvatarVideoFormat()
     let videoCropTopLeftX = document.getElementById('videoCrop').checked ? 600 : 0
     let videoCropBottomRightX = document.getElementById('videoCrop').checked ? 1320 : 1920
@@ -251,6 +273,7 @@ window.startSession = () => {
 
     const talkingAvatarCharacter = document.getElementById('talkingAvatarCharacter').value
     const talkingAvatarStyle = document.getElementById('talkingAvatarStyle').value
+    // Initialize avatar configuration
     const avatarConfig = new SpeechSDK.AvatarConfig(talkingAvatarCharacter, talkingAvatarStyle, videoFormat)
     avatarConfig.customized = document.getElementById('customizedAvatar').checked
     avatarConfig.backgroundColor = document.getElementById('backgroundColor').value
@@ -294,7 +317,9 @@ window.startSession = () => {
     
 }
 
+// Speech Control Functions
 window.speak = () => {
+    // Configure and send speech synthesis reques
     document.getElementById('speak').disabled = true;
     document.getElementById('stopSpeaking').disabled = false
     document.getElementById('audio').muted = false
@@ -324,6 +349,7 @@ window.speak = () => {
 
 
 window.stopSpeaking = () => {
+    // Handle speech stop reques
     document.getElementById('stopSpeaking').disabled = true
 
     avatarSynthesizer.stopSpeakingAsync().then(
@@ -332,13 +358,16 @@ window.stopSpeaking = () => {
 }
 
 window.stopSession = () => {
+    // Clean up and close avatar session
     document.getElementById('speak').disabled = true
     document.getElementById('stopSession').disabled = true
     document.getElementById('stopSpeaking').disabled = true
     avatarSynthesizer.close()
 }
 
+// UI Update Functions
 window.updataTransparentBackground = () => {
+    // Update background transparency settings
     if (document.getElementById('transparentBackground').checked) {
         document.body.background = './image/background.png'
         document.getElementById('backgroundColor').value = '#00FF00FF'
@@ -351,6 +380,7 @@ window.updataTransparentBackground = () => {
 }
 
 window.updatePrivateEndpoint = () => {
+    // Toggle private endpoint configuration visibility
     if (document.getElementById('enablePrivateEndpoint').checked) {
         document.getElementById('showPrivateEndpointCheckBox').hidden = false
     } else {
