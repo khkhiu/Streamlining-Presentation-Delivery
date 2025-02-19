@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Enable CORS for Flutter frontend
 app.use(cors({
-    origin: ['http://localhost:34887', 'http://localhost:3000'],
+    origin: ['http://localhost:39073', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: [
         'Content-Type',
