@@ -2,15 +2,23 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  final String baseUrl = 'http://localhost:3000'; // Your Node.js backend URL
+  final String baseUrl = 'http://localhost:3000'; //NodeJS backend URL
 
   Future<Map<String, dynamic>> getConfig() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/config'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/config'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Accept': 'application/json',
+        },
+      );
+      
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        throw Exception('Failed to load config');
+        throw Exception('Failed to load config: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Failed to connect to server: $e');
@@ -21,7 +29,11 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/startSession'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Accept': 'application/json',
+        },
         body: json.encode(sessionConfig),
       );
       
@@ -37,7 +49,11 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/speak'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Accept': 'application/json',
+        },
         body: json.encode({'text': text}),
       );
 
@@ -53,7 +69,11 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/stopSpeaking'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Accept': 'application/json',
+        },
       );
 
       if (response.statusCode != 200) {
@@ -68,7 +88,11 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/stopSession'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Accept': 'application/json',
+        },
       );
 
       if (response.statusCode != 200) {

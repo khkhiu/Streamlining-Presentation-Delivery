@@ -12,13 +12,21 @@ dotenv.config();
 app.use(express.json());
 
 // Serve static files from public directory
-app.use(express.static(path.join(__dirname, '..', 'public')));
+//app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Enable CORS for Flutter frontend
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://localhost:3000'], // Allow both Flutter web and desktop apps
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type']
+    origin: ['http://localhost:34887', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'Access-Control-Allow-Origin',
+        'Access-Control-Allow-Methods',
+        'Access-Control-Allow-Headers'
+    ],
+    credentials: true,
+    optionsSuccessStatus: 204
 }));
 
 // Store active session state
