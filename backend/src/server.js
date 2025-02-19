@@ -12,7 +12,7 @@ dotenv.config();
 app.use(express.json());
 
 // Serve static files from public directory
-//app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Enable CORS for Flutter frontend
 app.use(cors({
