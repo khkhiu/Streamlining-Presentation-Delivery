@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'avatar_configuration.dart';
+import '../models/avatar_configuration.dart';
+import '../widgets/chat_history.dart';
 import 'webrtc_service.dart';
 import 'speech_service.dart';
 

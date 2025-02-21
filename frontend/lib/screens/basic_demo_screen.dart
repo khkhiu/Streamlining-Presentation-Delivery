@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+//import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../services/avatar_service.dart';
 import '../widgets/avatar_video_view.dart';
 import '../widgets/configuration_panel.dart';

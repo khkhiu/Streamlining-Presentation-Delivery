@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:http/http.dart' as http;
+//import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 /// A service class that handles WebRTC connections for avatar video streaming.
@@ -139,7 +139,7 @@ class WebRTCService {
 
   /// Creates and sets the local session description.
   /// This is a crucial step in establishing the WebRTC connection.
-  Future<void> createOffer() async {
+  Future<RTCSessionDescription> createOffer() async {
     try {
       final RTCSessionDescription offer = await _peerConnection!.createOffer({
         'offerToReceiveAudio': 1,
@@ -149,7 +149,7 @@ class WebRTCService {
       await _peerConnection!.setLocalDescription(offer);
       
       print('Local description set successfully');
-      return offer;
+      return offer;  // Now correctly returns the RTCSessionDescription
     } catch (e) {
       print('Error creating offer: $e');
       throw Exception('Failed to create WebRTC offer: $e');

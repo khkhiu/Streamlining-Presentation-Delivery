@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
+import '../widgets/advanced_settings.dart';
 
 /// A status bar widget that displays the current state of the avatar system,
 /// including connection status, speech recognition status, and any active processes.

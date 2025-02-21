@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/avatar_configuration.dart';
+//import '../models/avatar_configuration.dart';
 import '../services/app_state.dart';
 
 /// A comprehensive settings panel that allows users to configure all aspects

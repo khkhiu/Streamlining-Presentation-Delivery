@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:speech_to_text/speech_recognition_result.dart'; // Add this import
 
 class SpeechService extends ChangeNotifier {
   final stt.SpeechToText _speech = stt.SpeechToText();
@@ -84,7 +85,7 @@ class SpeechService extends ChangeNotifier {
   }
 
   // Handle speech recognition results
-  void _onSpeechResult(stt.SpeechRecognitionResult result) {
+  void _onSpeechResult(SpeechRecognitionResult result) {
     _lastWords = result.recognizedWords;
     notifyListeners();
   }
