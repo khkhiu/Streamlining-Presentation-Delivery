@@ -133,6 +133,23 @@
   <div>
     <img id="uploadImgIcon" src="./image/attachment.jpg" alt="Button" style="cursor: pointer;" hidden />
   </div>
+  <button id="adminToggle" class="admin-toggle" onclick="toggleAdminMode()">Toggle configuration</button>
+
+  <script>
+  function toggleAdminMode() {
+      const body = document.body;
+      const button = document.getElementById('adminToggle');
+      
+      if (body.classList.contains('admin-mode')) {
+          body.classList.remove('admin-mode');
+          button.textContent = 'Admin Mode';
+      } else {
+          body.classList.add('admin-mode');
+          button.textContent = 'Exit Admin Mode';
+      }
+  }
+  </script>
+
 </body>
 
 </html>
