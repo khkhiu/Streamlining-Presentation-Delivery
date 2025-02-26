@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import './App.css';
 
 // Type definitions
 interface AvatarConfig {
@@ -34,15 +35,37 @@ declare global {
   }
 }
 
-const TalkingAvatarComponent: React.FC = () => {
+const App: React.FC = () => {
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(null);
   const [isSessionActive, setSessionActive] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>("Hello world!");
+  const [isSdkReady, setSdkReady] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const avatarSynthesizerRef = useRef<any>(null); // Type will be from SpeechSDK
+  
+  // Check if SDK is loaded when component mounts
+  useEffect(() => {
+    const checkSdk = () => {
+      if (window.SpeechSDK) {
+        console.log("Speech SDK loaded successfully");
+        setSdkReady(true);
+      } else {
+        console.warn("Speech SDK not loaded yet, retrying...");
+        setTimeout(checkSdk, 100);
+      }
+    };
+    
+    checkSdk();
+
+    // Debug SDK loading
+    console.log("window.SpeechSDK:", window.SpeechSDK);
+    const sdkScript = document.querySelector('script[src*="csspeech"]');
+    console.log("SDK Script found:", !!sdkScript);
+  }, []);
   
   // Fetch initial configuration
   useEffect(() => {
@@ -50,10 +73,60 @@ const TalkingAvatarComponent: React.FC = () => {
       .then(response => setAvatarConfig(response.data))
       .catch(error => console.error('Error loading configuration:', error));
   }, []);
+
+  // Ensure audio playback is allowed
+  const ensureAudioPlayback = () => {
+    const tempAudio = document.createElement('audio');
+    tempAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    
+    // Try to play a silent audio to get permission
+    const playPromise = tempAudio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('Audio playback is allowed');
+          tempAudio.remove();
+        })
+        .catch(error => {
+          console.warn('Audio playback was prevented:', error);
+          // Audio playback was prevented, you might want to show a message to the user
+        });
+    }
+  };
+
+  // Set default audio output device
+  // Use feature detection instead of type augmentation
+  const setDefaultAudioOutput = async () => {
+    try {
+      // Check if the function exists on the object before calling it
+      const mediaDevices = navigator.mediaDevices as any;
+      if (mediaDevices && typeof mediaDevices.selectAudioOutput === 'function') {
+        await mediaDevices.selectAudioOutput();
+        console.log('Audio output device selected');
+      }
+    } catch (error) {
+      console.warn('Could not select audio output device:', error);
+    }
+  };
+  
+  // Handle the Start Session button click
+  const handleStartSession = () => {
+    ensureAudioPlayback();
+    startSession();
+  };
   
   // Start avatar session
   const startSession = async (): Promise<void> => {
-    if (!avatarConfig) return;
+    if (!avatarConfig) {
+      console.error("Avatar configuration not loaded");
+      return;
+    }
+    
+    if (!isSdkReady) {
+      console.error("Speech SDK not loaded yet");
+      return;
+    }
     
     try {
       // Get WebRTC token from backend
@@ -80,7 +153,7 @@ const TalkingAvatarComponent: React.FC = () => {
       setupWebRTC(
         iceServerData.Urls[0],
         iceServerData.Username,
-        iceServerData.Password  // Use Password from the response, not Credential
+        iceServerData.Password
       );
       
       setSessionActive(true);
@@ -102,8 +175,7 @@ const TalkingAvatarComponent: React.FC = () => {
       iceServers: [{
         urls: [iceServerUrl],
         username: iceServerUsername,
-        // This is the problem - the property should be "credential", not "iceServerCredential"
-        credential: iceServerCredential  // Use "credential" here, not a different property name
+        credential: iceServerCredential
       }]
     });
     
@@ -113,6 +185,29 @@ const TalkingAvatarComponent: React.FC = () => {
     peerConnection.ontrack = (event: RTCTrackEvent) => {
       if (event.track.kind === 'video' && videoRef.current && event.streams[0]) {
         videoRef.current.srcObject = event.streams[0];
+      } else if (event.track.kind === 'audio') {
+        // Create an audio element for the audio track
+        const audioElement = document.createElement('audio');
+        audioElement.srcObject = event.streams[0];
+        audioElement.autoplay = true;
+        // Important: Make sure audio is not muted
+        audioElement.muted = false;
+        // Add it to the DOM (can be hidden)
+        audioElement.style.display = 'none';
+        document.body.appendChild(audioElement);
+        
+        // Keep a reference to clean up later
+        audioRef.current = audioElement;
+        
+        // Make sure the audio element is not muted when it starts playing
+        audioElement.addEventListener('play', () => {
+          console.log('Audio started playing');
+          audioElement.muted = false;
+          audioElement.volume = 1.0;
+        });
+        
+        // Set default audio output
+        setDefaultAudioOutput();
       }
     };
     
@@ -123,13 +218,32 @@ const TalkingAvatarComponent: React.FC = () => {
     // Listen for WebRTC connection state changes
     peerConnection.oniceconnectionstatechange = () => {
       console.log(`WebRTC status: ${peerConnection.iceConnectionState}`);
+      
+      if (peerConnection.iceConnectionState === 'connected') {
+        // We could trigger the audio output selection here as well
+        setDefaultAudioOutput();
+      }
+    };
+    
+    // Setup data channel for events
+    const dataChannel = peerConnection.createDataChannel("eventChannel");
+    dataChannel.onmessage = (event) => {
+      console.log(`WebRTC event received: ${event.data}`);
     };
     
     // Initialize avatar synthesizer and start avatar
+    if (!window.SpeechSDK) {
+      console.error("Speech SDK not available");
+      return;
+    }
+    
     const speechConfig = window.SpeechSDK.SpeechConfig.fromSubscription(
       avatarConfig.speech.apiKey, 
       avatarConfig.speech.region
     );
+    
+    // Set high quality audio output format
+    speechConfig.speechSynthesisOutputFormat = window.SpeechSDK.SpeechSynthesisOutputFormat.Audio24Khz160KBitRateMonoMp3;
     
     const avatarSdkConfig = new window.SpeechSDK.AvatarConfig(
       avatarConfig.avatar.character,
@@ -191,6 +305,12 @@ const TalkingAvatarComponent: React.FC = () => {
         </voice>
       </speak>`;
       
+      // Ensure any audio element is not muted
+      if (audioRef.current) {
+        audioRef.current.muted = false;
+        audioRef.current.volume = 1.0;
+      }
+      
       const result = await avatarSynthesizerRef.current.speakSsmlAsync(ssml);
       
       if (result.reason === window.SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
@@ -229,6 +349,13 @@ const TalkingAvatarComponent: React.FC = () => {
       peerConnectionRef.current.close();
     }
     
+    // Clean up audio element
+    if (audioRef.current) {
+      audioRef.current.srcObject = null;
+      audioRef.current.remove();
+      audioRef.current = null;
+    }
+    
     setSessionActive(false);
     setIsSpeaking(false);
     console.log('Avatar session closed');
@@ -247,7 +374,7 @@ const TalkingAvatarComponent: React.FC = () => {
           style={{ width: '100%', height: 'auto' }}
         />
         
-        {/* Subtitles would go here */}
+        {/* Subtitles */}
         <div 
           style={{ 
             position: 'absolute',
@@ -277,8 +404,8 @@ const TalkingAvatarComponent: React.FC = () => {
         
         <div className="buttons" style={{ display: 'flex', gap: '10px' }}>
           <button 
-            onClick={startSession} 
-            disabled={isSessionActive || !avatarConfig}
+            onClick={handleStartSession} 
+            disabled={isSessionActive || !avatarConfig || !isSdkReady}
             style={{ padding: '8px 16px' }}
           >
             Start Session
@@ -313,4 +440,4 @@ const TalkingAvatarComponent: React.FC = () => {
   );
 };
 
-export default TalkingAvatarComponent;
+export default App;
