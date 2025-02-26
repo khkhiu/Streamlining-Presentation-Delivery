@@ -11,9 +11,9 @@ interface ChatAvatarModeProps {
   isSdkReady: boolean;
   isSessionActive: boolean;
   isSpeaking: boolean;
-  videoRef: React.RefObject<HTMLVideoElement>;
-  audioRef: React.RefObject<HTMLAudioElement>;
-  peerConnectionRef: React.RefObject<RTCPeerConnection>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  peerConnectionRef: React.RefObject<RTCPeerConnection | null>;
   avatarSynthesizerRef: React.RefObject<any>;
   setSessionActive: React.Dispatch<React.SetStateAction<boolean>>;
   setIsSpeaking: React.Dispatch<React.SetStateAction<boolean>>;

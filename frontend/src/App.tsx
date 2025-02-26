@@ -462,7 +462,7 @@ const App: React.FC = () => {
               </button>
               
               <button 
-                onClick={speak} 
+                onClick={() => speak(inputText)} 
                 disabled={!isSessionActive || isSpeaking}
                 style={{ padding: '8px 16px' }}
               >

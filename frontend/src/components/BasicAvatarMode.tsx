@@ -5,15 +5,15 @@ interface BasicAvatarModeProps {
   isSdkReady: boolean;
   isSessionActive: boolean;
   isSpeaking: boolean;
-  videoRef: React.RefObject<HTMLVideoElement>;
-  audioRef: React.RefObject<HTMLAudioElement>;
-  peerConnectionRef: React.RefObject<RTCPeerConnection>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  peerConnectionRef: React.RefObject<RTCPeerConnection | null>;
   avatarSynthesizerRef: React.RefObject<any>;
   setSessionActive: React.Dispatch<React.SetStateAction<boolean>>;
   setIsSpeaking: React.Dispatch<React.SetStateAction<boolean>>;
   startSession: () => Promise<void>;
   stopSession: () => void;
-  speak: () => Promise<void>;
+  speak: (text?: string) => Promise<void>;
   stopSpeaking: () => Promise<void>;
 }
 
