@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
+// Component imports
+import BasicAvatarMode from './components/BasicAvatarMode';
+import ChatAvatarMode from './components/ChatAvatarMode';
+
 // Type definitions
 interface AvatarConfig {
   speech: {
@@ -41,6 +45,7 @@ const App: React.FC = () => {
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>("Hello world!");
   const [isSdkReady, setSdkReady] = useState<boolean>(false);
+  const [showChatMode, setShowChatMode] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -280,8 +285,11 @@ const App: React.FC = () => {
   };
   
   // Make the avatar speak
-  const speak = async (): Promise<void> => {
+  const speak = async (text?: string): Promise<void> => {
     if (!avatarSynthesizerRef.current || !isSessionActive || !avatarConfig) return;
+    
+    // Use provided text or fallback to inputText state
+    const textToSpeak = text || inputText;
     
     setIsSpeaking(true);
     
@@ -290,7 +298,7 @@ const App: React.FC = () => {
       const personalVoiceId = avatarConfig.tts.personalVoiceSpeakerProfileId || '';
       
       // Create SSML with proper HTML encoding
-      const encodedText = inputText.replace(/&/g, '&amp;')
+      const encodedText = textToSpeak.replace(/&/g, '&amp;')
                                    .replace(/</g, '&lt;')
                                    .replace(/>/g, '&gt;')
                                    .replace(/"/g, '&quot;')
@@ -363,79 +371,123 @@ const App: React.FC = () => {
   
   return (
     <div className="avatar-container">
-      <h2>Talking Avatar</h2>
-      
-      {/* Video display */}
-      <div className="video-container" style={{ position: 'relative', width: '960px' }}>
-        <video 
-          ref={videoRef}
-          autoPlay 
-          playsInline
-          style={{ width: '100%', height: 'auto' }}
-        />
-        
-        {/* Subtitles */}
-        <div 
+      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>Talking Avatar</h2>
+        <button 
+          onClick={() => {
+            // Make sure to stop any active session before switching modes
+            if (isSessionActive) {
+              stopSession();
+            }
+            setShowChatMode(!showChatMode);
+          }}
           style={{ 
-            position: 'absolute',
-            bottom: '5%',
-            width: '100%',
-            textAlign: 'center',
-            color: 'white',
-            textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
-            fontSize: '22px',
-            display: isSpeaking ? 'block' : 'none'
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer'
           }}
         >
-          {isSpeaking ? inputText : ''}
-        </div>
+          Switch to {showChatMode ? 'Basic' : 'Chat'} Mode
+        </button>
       </div>
       
-      {/* Avatar controls */}
-      <div className="controls" style={{ marginTop: '20px' }}>
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          disabled={!isSessionActive}
-          rows={3}
-          style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
-          placeholder="Enter text for the avatar to speak"
+      {showChatMode ? (
+        // Chat Avatar Mode
+        <ChatAvatarMode 
+          avatarConfig={avatarConfig}
+          isSdkReady={isSdkReady}
+          isSessionActive={isSessionActive}
+          isSpeaking={isSpeaking}
+          videoRef={videoRef}
+          audioRef={audioRef}
+          peerConnectionRef={peerConnectionRef}
+          avatarSynthesizerRef={avatarSynthesizerRef}
+          setSessionActive={setSessionActive}
+          setIsSpeaking={setIsSpeaking}
+          startSession={startSession}
+          stopSession={stopSession}
+          speak={speak}
+          stopSpeaking={stopSpeaking}
         />
-        
-        <div className="buttons" style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={handleStartSession} 
-            disabled={isSessionActive || !avatarConfig || !isSdkReady}
-            style={{ padding: '8px 16px' }}
-          >
-            Start Session
-          </button>
+      ) : (
+        // Basic Avatar Mode
+        <div>
+          {/* Video display */}
+          <div className="video-container" style={{ position: 'relative', width: '960px' }}>
+            <video 
+              ref={videoRef}
+              autoPlay 
+              playsInline
+              style={{ width: '100%', height: 'auto' }}
+            />
+            
+            {/* Subtitles */}
+            <div 
+              style={{ 
+                position: 'absolute',
+                bottom: '5%',
+                width: '100%',
+                textAlign: 'center',
+                color: 'white',
+                textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                fontSize: '22px',
+                display: isSpeaking ? 'block' : 'none'
+              }}
+            >
+              {isSpeaking ? inputText : ''}
+            </div>
+          </div>
           
-          <button 
-            onClick={speak} 
-            disabled={!isSessionActive || isSpeaking}
-            style={{ padding: '8px 16px' }}
-          >
-            Speak
-          </button>
-          
-          <button 
-            onClick={stopSpeaking} 
-            disabled={!isSpeaking}
-            style={{ padding: '8px 16px' }}
-          >
-            Stop Speaking
-          </button>
-          
-          <button 
-            onClick={stopSession} 
-            disabled={!isSessionActive}
-            style={{ padding: '8px 16px' }}
-          >
-            Stop Session
-          </button>
+          {/* Avatar controls */}
+          <div className="controls" style={{ marginTop: '20px' }}>
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              disabled={!isSessionActive}
+              rows={3}
+              style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
+              placeholder="Enter text for the avatar to speak"
+            />
+            
+            <div className="buttons" style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={handleStartSession} 
+                disabled={isSessionActive || !avatarConfig || !isSdkReady}
+                style={{ padding: '8px 16px' }}
+              >
+                Start Session
+              </button>
+              
+              <button 
+                onClick={speak} 
+                disabled={!isSessionActive || isSpeaking}
+                style={{ padding: '8px 16px' }}
+              >
+                Speak
+              </button>
+              
+              <button 
+                onClick={stopSpeaking} 
+                disabled={!isSpeaking}
+                style={{ padding: '8px 16px' }}
+              >
+                Stop Speaking
+              </button>
+              
+              <button 
+                onClick={stopSession} 
+                disabled={!isSessionActive}
+                style={{ padding: '8px 16px' }}
+              >
+                Stop Session
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
